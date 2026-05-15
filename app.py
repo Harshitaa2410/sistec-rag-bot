@@ -203,8 +203,9 @@ def build_index(kb_path: str):
     with open(kb_path, "r", encoding="utf-8") as f:
         raw = f.read()
     file_hash = hashlib.md5(raw.encode()).hexdigest()[:8]
-    cache_path = f"embeddings/faiss_index_{file_hash}.pkl"
-    os.makedirs("embeddings", exist_ok=True)
+    cache_dir = "/tmp" if os.path.exists("/mount/src") else os.path.join(_base_dir, "embeddings")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = os.path.join(cache_dir, f"faiss_index_{file_hash}.pkl")
 
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as f:
@@ -298,7 +299,19 @@ def is_relevant(query: str, top_score: float, threshold: float = 0.25) -> bool:
 
 
 # ─── Load knowledge base ────────────────────────────────────────────────────────
-KB_PATH = os.path.join(os.path.dirname(__file__), "data", "sistec_knowledge_base.txt")
+# Resolve KB path — works locally and on Streamlit Cloud
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+KB_PATH = os.path.join(_base_dir, "data", "sistec_knowledge_base.txt")
+
+# Fallback: search common Streamlit Cloud mount paths
+if not os.path.exists(KB_PATH):
+    for _candidate in [
+        "/mount/src/sistec-rag-bot/data/sistec_knowledge_base.txt",
+        os.path.join(os.getcwd(), "data", "sistec_knowledge_base.txt"),
+    ]:
+        if os.path.exists(_candidate):
+            KB_PATH = _candidate
+            break
 
 
 # ══════════════════════════════════════════════════════════════════════════════
