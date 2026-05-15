@@ -252,7 +252,7 @@ def retrieve(query: str, index, docs, embed_model, top_k: int = 4) -> List[Tuple
 def generate_answer(query: str, chunks: List[Tuple[Dict, float]], api_key: str) -> str:
     import google.generativeai as genai
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
     # Build context
     context_parts = []
